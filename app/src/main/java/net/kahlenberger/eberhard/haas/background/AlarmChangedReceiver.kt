@@ -4,12 +4,15 @@ import android.app.AlarmManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.os.Build
+import android.support.annotation.RequiresApi
 import net.kahlenberger.eberhard.haas.helpers.IProvideFreeJobId
 import net.kahlenberger.eberhard.haas.helpers.MaxJobIdIncrementProvider
 import net.kahlenberger.eberhard.haas.R
 import net.kahlenberger.eberhard.haas.helpers.IHandleSeenPackages
 import net.kahlenberger.eberhard.haas.helpers.PackageNameSplitterResolver
 
+@RequiresApi(Build.VERSION_CODES.M)
 class AlarmChangedReceiver : BroadcastReceiver() {
     private val jobIdProvider: IProvideFreeJobId = MaxJobIdIncrementProvider()
     private val packageHandler: IHandleSeenPackages = PackageNameSplitterResolver()
@@ -23,9 +26,11 @@ class AlarmChangedReceiver : BroadcastReceiver() {
         val pref = context.getSharedPreferences(context.getString(R.string.pref_key),Context.MODE_PRIVATE)
         val restUrl:String  = pref.getString(context.getString(R.string.resturl_key),"")
         val itemName:String = pref.getString(context.getString(R.string.item_key),"")
+        val username: String = pref.getString("username", "")
+        val encryptedPassword: String = pref.getString("encryptedPassword", "")
         if (scheduledByPackage != null && !packageHandler.addPackageAndCheckIfAllowed(context,scheduledByPackage)) return
 
         if (restUrl != "" && itemName != "" && jobIdProvider.getFreeJobId(context) == 1)
-            AsyncOpenHabRequest(jobIdProvider,packageHandler).execute(OpenHabRequestData(restUrl, itemName,nextAlarm?.triggerTime,  context))
+            AsyncOpenHabRequest(jobIdProvider,packageHandler).execute(OpenHabRequestData(restUrl, username, encryptedPassword, itemName,nextAlarm?.triggerTime,  context))
     }
 }

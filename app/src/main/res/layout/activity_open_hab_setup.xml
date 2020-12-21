@@ -7,6 +7,22 @@
     tools:context="net.kahlenberger.eberhard.haas.OpenHabSetup">
 
     <EditText
+        android:id="@+id/editUsername"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:ems="10"
+        android:hint="@string/username_edit_hint"
+        android:inputType="textUri"
+        android:singleLine="true"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editURL" />
+
+    <EditText
         android:id="@+id/editURL"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -25,17 +41,17 @@
         android:id="@+id/editItemName"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
         android:ems="10"
         android:hint="@string/openhabItemName_edit_hint"
+        android:imeOptions="actionDone"
         android:inputType="textPersonName"
         android:singleLine="true"
-        android:imeOptions="actionDone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editURL" />
+        app:layout_constraintTop_toBottomOf="@+id/editPassword" />
 
     <Button
         android:id="@+id/btnSave"
@@ -70,5 +86,19 @@
         android:textAllCaps="false"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/editItemName" />
+
+    <EditText
+        android:id="@+id/editPassword"
+        android:layout_width="382dp"
+        android:layout_height="52dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:ems="10"
+        android:hint="@string/password_edit_hint"
+        android:inputType="textPassword"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editUsername" />
 
 </android.support.constraint.ConstraintLayout>

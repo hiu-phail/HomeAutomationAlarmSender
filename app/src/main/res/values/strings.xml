@@ -1,6 +1,8 @@
 <resources>
     <string name="app_name" translatable="false">Home Automation Alarm Sender</string>
     <string name="openhabUrl_edit_hint" translatable="true">openHAB REST URL</string>
+    <string name="username_edit_hint" translatable="true">Username</string>
+    <string name="password_edit_hint" translatable="true">Password</string>
     <string name="openhabItemName_edit_hint" translatable="true">Item name</string>
     <string name="openhabSave_btn_text" translatable="true">Save</string>
     <string name="openhabError_text" translatable="true">Last request error: %1$s</string>

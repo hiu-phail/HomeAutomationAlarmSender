@@ -8,15 +8,20 @@ import android.app.job.JobScheduler
 import android.content.ComponentName
 import android.content.Context
 import android.os.AsyncTask
+import android.os.Build
 import android.os.PersistableBundle
+import android.support.annotation.RequiresApi
+import android.util.Base64
 import android.widget.Toast
 import net.kahlenberger.eberhard.haas.helpers.IProvideFreeJobId
 import net.kahlenberger.eberhard.haas.R
 import net.kahlenberger.eberhard.haas.helpers.IHandleSeenPackages
+import net.kahlenberger.eberhard.haas.helpers.PasswordManagement
 import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
 import java.net.URL
 
+@RequiresApi(Build.VERSION_CODES.M)
 class AsyncOpenHabRequest(val jobIdProvider: IProvideFreeJobId, val packageHandler: IHandleSeenPackages) : AsyncTask<OpenHabRequestData, String, OpenHABResponse>()
 {
 
@@ -56,7 +61,7 @@ class AsyncOpenHabRequest(val jobIdProvider: IProvideFreeJobId, val packageHandl
             return OpenHABResponse(OpenHABResponseType.Failure,null)
         }
 
-        val response = sendOpenhabReq(request.openHabUrl,request.itemName, sendAlarm ,request.context)
+        val response = sendOpenhabReq(request.openHabUrl,request.username, request.encryptedPassword,request.itemName, sendAlarm ,request.context)
         if (request.jParams != null && request.alService != null)
         {
             request.alService.jobFinished(request.jParams,false)
@@ -64,7 +69,7 @@ class AsyncOpenHabRequest(val jobIdProvider: IProvideFreeJobId, val packageHandl
         return OpenHABResponse(response,request.context)
     }
 
-    private fun sendOpenhabReq(restUrl: String, itemName: String, alarm: Long?, context: Context) : OpenHABResponseType {
+    private fun sendOpenhabReq(restUrl: String, username:String, encryptedPassword: String, itemName: String, alarm: Long?, context: Context) : OpenHABResponseType {
         var connection: HttpURLConnection? =  null
         var sendAlarm = "0"
         if (alarm != null) sendAlarm = (alarm/1000).toString()
@@ -76,6 +81,13 @@ class AsyncOpenHabRequest(val jobIdProvider: IProvideFreeJobId, val packageHandl
 
             connection.setRequestProperty("Content-Type", "text/plain; charset=UTF-8")
             connection.setRequestProperty("Content-Length", sendAlarm.length.toString())
+            if (!username.isEmpty()) {
+                var pm = PasswordManagement()
+                val decryptedPassword = pm.decrypt(context, encryptedPassword)
+                val auth = "$username:$decryptedPassword"
+                val encodedAuth = Base64.encodeToString(auth.toByteArray(), Base64.DEFAULT)
+                connection.setRequestProperty("Authorization", "Basic $encodedAuth")
+            }
             connection.requestMethod = "PUT"
             connection.doOutput = true
             connection.instanceFollowRedirects = false
@@ -95,7 +107,7 @@ class AsyncOpenHabRequest(val jobIdProvider: IProvideFreeJobId, val packageHandl
         catch (ex:Exception)
         {
             setPreference(context, R.string.pref_key, R.string.error_key,ex.localizedMessage)
-            createJob(restUrl, itemName,alarm, context)
+            createJob(restUrl,username,encryptedPassword,itemName,alarm, context)
             return OpenHABResponseType.FailureRetry
         }
         finally {
@@ -112,13 +124,15 @@ class AsyncOpenHabRequest(val jobIdProvider: IProvideFreeJobId, val packageHandl
         edit.commit()
     }
 
-    private fun createJob(restUrl: String, itemName: String, defaultAlarm: Long?, context: Context){
+    private fun createJob(restUrl: String, username: String, encryptedPassword: String, itemName: String, defaultAlarm: Long?, context: Context){
         val newJobId = jobIdProvider.getFreeJobId(context)
         val job = Builder(newJobId, ComponentName(context,AlarmUpdateService::class.java))
         job.setRequiredNetworkType(JobInfo.NETWORK_TYPE_UNMETERED)
         //job.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
         val extras = PersistableBundle()
         extras.putString("url",restUrl)
+        extras.putString("username", username)
+        extras.putString("encryptedPassword", encryptedPassword)
         extras.putString("item", itemName)
         if (defaultAlarm != null)
             extras.putLong("defaultAlarm",defaultAlarm)
